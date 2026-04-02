@@ -11,9 +11,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         hudController = HUDWindowController(sessionStore: sessionStore) { [weak self] session in
+            // Find and focus the terminal window
+            let windows = TerminalFocus.listWindows()
+            if let match = WindowMatcher.findMatch(cwd: session.cwd, windows: windows) {
+                TerminalFocus.focus(match)
+            } else {
+                TerminalFocus.activateAnyTerminal()
+            }
             self?.sessionStore.remove(sessionID: session.sessionID)
-            // Terminal focus will be added in Task 6
-            print("Clicked: \(session.projectName)")
         }
 
         do {
