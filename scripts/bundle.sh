@@ -1,14 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
-BUILD_DIR=".build/release"
 APP_DIR="KeepGoing.app/Contents"
 
-swift build -c release
+# Build universal binary
+swift build -c release --arch arm64 --arch x86_64
 
 rm -rf KeepGoing.app
 mkdir -p "$APP_DIR/MacOS"
-cp "$BUILD_DIR/KeepGoing" "$APP_DIR/MacOS/KeepGoing"
+
+cp .build/apple/Products/Release/KeepGoing "$APP_DIR/MacOS/KeepGoing"
 cp Resources/Info.plist "$APP_DIR/Info.plist"
 
-echo "Built KeepGoing.app"
+# Also copy the CLI next to the .app for the installer
+cp .build/apple/Products/Release/keepgoing-cli "$APP_DIR/MacOS/keepgoing-cli"
+
+echo "Built KeepGoing.app (universal binary)"
