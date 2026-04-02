@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let sessionStore = SessionStore()
     var server: Server?
     var hudController: HUDWindowController?
+    var autoDismiss: AutoDismissMonitor?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -21,10 +22,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.sessionStore.remove(sessionID: session.sessionID)
         }
 
+        autoDismiss = AutoDismissMonitor(sessionStore: sessionStore)
+
         do {
             server = try Server { [weak self] payload in
                 Task { @MainActor in
                     self?.sessionStore.add(payload)
+                    self?.autoDismiss?.start()
                 }
             }
             server?.start()
