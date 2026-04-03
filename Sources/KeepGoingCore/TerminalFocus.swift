@@ -8,7 +8,6 @@ public enum TerminalFocus {
     ]
 
     /// Find and focus a terminal window whose title contains the project name.
-    /// Uses Accessibility API directly (AXUIElement) — no AppleScript, no osascript.
     @discardableResult
     public static func focusWindowForProject(_ projectName: String) -> Bool {
         for bundleID in supportedBundleIDs {
@@ -18,14 +17,12 @@ public enum TerminalFocus {
 
             let axApp = AXUIElementCreateApplication(app.processIdentifier)
 
-            // Get all windows
             var windowsRef: CFTypeRef?
             guard AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowsRef) == .success,
                   let windows = windowsRef as? [AXUIElement] else {
                 continue
             }
 
-            // Find window whose title contains the project name
             for window in windows {
                 var titleRef: CFTypeRef?
                 guard AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleRef) == .success,
@@ -34,10 +31,13 @@ public enum TerminalFocus {
                 }
 
                 if title.localizedCaseInsensitiveContains(projectName) {
-                    // AXRaise first (reorders within app's window stack)
+                    // Raise before activate
                     AXUIElementPerformAction(window, kAXRaiseAction as CFString)
-                    // Then activate the app (brings it forward with raised window on top)
+                    // Activate brings all windows forward
                     app.activate()
+                    // Raise AGAIN after activate settles to force our window on top
+                    usleep(150_000)
+                    AXUIElementPerformAction(window, kAXRaiseAction as CFString)
                     return true
                 }
             }
@@ -55,7 +55,6 @@ public enum TerminalFocus {
 
         let axApp = AXUIElementCreateApplication(frontApp.processIdentifier)
 
-        // Get the frontmost (focused) window
         var windowRef: CFTypeRef?
         guard AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &windowRef) == .success else {
             return false
