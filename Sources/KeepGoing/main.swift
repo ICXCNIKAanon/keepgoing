@@ -12,14 +12,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
 
         hudController = HUDWindowController(sessionStore: sessionStore) { [weak self] session in
-            // Find and focus the terminal window
-            let windows = TerminalFocus.listWindows()
-            if let match = WindowMatcher.findMatch(cwd: session.cwd, windows: windows) {
-                TerminalFocus.focus(match)
-            } else {
-                TerminalFocus.activateAnyTerminal()
-            }
+            let projectName = session.projectName
             self?.sessionStore.remove(sessionID: session.sessionID)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                if !TerminalFocus.focusWindowForProject(projectName) {
+                    TerminalFocus.activateAnyTerminal()
+                }
+            }
         }
 
         autoDismiss = AutoDismissMonitor(sessionStore: sessionStore)
