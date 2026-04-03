@@ -81,7 +81,24 @@ struct CLI {
             print("✗ Failed to patch settings: \(error.localizedDescription)")
         }
 
-        // 3. Launch the app
+        // 3. Add to Login Items
+        let loginItemScript = """
+        tell application "System Events"
+            if not (exists login item "KeepGoing") then
+                make login item at end with properties {path:"\(appDest.path)", hidden:true}
+            end if
+        end tell
+        """
+        let addLogin = Process()
+        addLogin.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        addLogin.arguments = ["-e", loginItemScript]
+        try? addLogin.run()
+        addLogin.waitUntilExit()
+        if addLogin.terminationStatus == 0 {
+            print("✓ Added to Login Items (starts on boot)")
+        }
+
+        // 4. Launch the app
         if fm.fileExists(atPath: appDest.path) {
             let task = Process()
             task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
@@ -106,7 +123,16 @@ struct CLI {
         try? task.run()
         task.waitUntilExit()
 
-        // 2. Remove app
+        // 2. Remove from Login Items
+        let removeLogin = Process()
+        removeLogin.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        removeLogin.arguments = ["-e", "tell application \"System Events\" to delete login item \"KeepGoing\""]
+        removeLogin.standardError = FileHandle.nullDevice
+        try? removeLogin.run()
+        removeLogin.waitUntilExit()
+        print("✓ Removed from Login Items")
+
+        // 3. Remove app
         let appPath = home
             .appendingPathComponent("Applications")
             .appendingPathComponent("KeepGoing.app")
@@ -115,7 +141,7 @@ struct CLI {
             print("✓ Removed ~/Applications/KeepGoing.app")
         }
 
-        // 3. Remove hook from settings
+        // 4. Remove hook from settings
         let settingsPath = home
             .appendingPathComponent(".claude")
             .appendingPathComponent("settings.json")
