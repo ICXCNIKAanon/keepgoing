@@ -25,9 +25,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         do {
             server = try Server { [weak self] payload in
+                // Fire Telegram notification (async, non-blocking)
+                let config = Config.load()
+                if config.telegram.isConfigured {
+                    TelegramNotifier.send(projectName: payload.projectName, config: config.telegram)
+                }
+
+                // Update HUD on main thread
                 Task { @MainActor in
-                    self?.sessionStore.add(payload)
-                    self?.autoDismiss?.start()
+                    let config = Config.load()
+                    if config.hud.enabled {
+                        self?.sessionStore.add(payload)
+                        self?.autoDismiss?.start()
+                    }
                 }
             }
             server?.start()
