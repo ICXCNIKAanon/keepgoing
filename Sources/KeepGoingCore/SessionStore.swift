@@ -5,14 +5,14 @@ public struct NotificationSession: Identifiable, Sendable {
     public let id: String
     public let sessionID: String
     public let cwd: String
-    public let projectName: String
+    public let projectName: String  // Session name (matches window title) or folder name as fallback
     public let timestamp: Date
 
     public init(payload: NotificationPayload) {
         self.id = payload.sessionID
         self.sessionID = payload.sessionID
         self.cwd = payload.cwd
-        self.projectName = payload.projectName
+        self.projectName = payload.sessionName
         self.timestamp = Date()
     }
 }

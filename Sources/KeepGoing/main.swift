@@ -28,7 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 // Fire Telegram notification (async, non-blocking)
                 let config = Config.load()
                 if config.telegram.isConfigured {
-                    TelegramNotifier.send(projectName: payload.projectName, config: config.telegram)
+                    TelegramNotifier.send(projectName: payload.sessionName, config: config.telegram)
                 }
 
                 // Update HUD on main thread

@@ -24,7 +24,7 @@ import Testing
             cwd: "/Users/jake/keepgoing",
             hookEventName: "Notification"
         )
-        #expect(payload.projectName == "keepgoing")
+        #expect(payload.folderName == "keepgoing")
     }
 
     @Test func extractsProjectNameFromTrailingSlash() throws {
@@ -33,7 +33,7 @@ import Testing
             cwd: "/Users/jake/keepgoing/",
             hookEventName: "Notification"
         )
-        #expect(payload.projectName == "keepgoing")
+        #expect(payload.folderName == "keepgoing")
     }
 
     @Test func ignoresExtraFieldsInJSON() throws {
